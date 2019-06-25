@@ -11,7 +11,7 @@ Using the `jenkins/jenkins-manifest.yaml` file we are going to deploy the Jenkin
 ```bash
     kubectl apply -f jenkins/jenkins-manifest.yaml
 ```
-credentials will be stored in secrets and could be retrieved using below command.
+Credentials will be stored in secrets and could be retrieved using below command.
 
 ```bash
     printf $(kubectl get secret cd-jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode);echo
@@ -30,7 +30,7 @@ I'm leveraging Helm chart to deploy the mediawiki application as the Helm chart 
         stable/mediawiki -n mediawiki
 ```
 
-The above the command will deploy `mediawiki` application with release name `mediawiki-release` inside mediawiki namespace
+The above the command will deploy `mediawiki` application with release name `mediawiki-release` inside mediawiki namespace. </br>
 Exposed the `mediawiki` against a loadbalancer -> http://35.239.75.46/
 
 ### 4. Setup private docker registry to store the docker images. configure restricted access between cluster to registry and cluster to pipeline
@@ -100,7 +100,7 @@ for kiali refer the below screenshot
 
 
 ### 8. Setup mTLS authentication between microservices. Use self-signed certificates for secure communication between microservices.
-Prerequisites - Please make sure nginx ingress controller is installed in the cluster(Covered this in task 2 of level 1.)
+Prerequisites - Please make sure nginx ingress controller is installed in the cluster(Covered this in task 2 of level 1). </br>
 In order to setup Mutual Authentication we need to perform a couple of steps.
 
 Creating the self-signed certificate
@@ -128,13 +128,13 @@ Leveraging the helm chart available for kubernetes dashboard
     helm install --name k8s-dashboard -f k8s_dashboard/k8s-dashboard-custom-values.yaml stable/kubernetes-dashboard
 ````
 
-while installing the kubernetes dashboard's helm chart you might encounter the access issue for kubernetes dashboards service account similar to below provided
+While installing the kubernetes dashboard's helm chart you might encounter the access issue for kubernetes dashboards service account similar to below provided
 `panic: secrets is forbidden: User "system:serviceaccount:default:k8s-dashboard-kubernetes-dashboard" cannot create resource "secrets" in API group "" in the namespace "kube-system"` 
 To resolve this we can us any of the below methods
-* create cluster role binding and assign the k8s dashboard service account to it (Not advisable for production).
-* we can create separate service account instead of using the kubernetes dashboard's service account.
+* Create cluster role binding and assign the k8s dashboard service account to it (Not advisable for production).
+* Create separate service account instead of using the kubernetes dashboard's service account.
  
-> Note: we can limit the role for  service account to pods & namespace or read access 0nly if required
+> Note: we can limit the role for  service account to pods & namespace or read access only if required
 
 ### 10. Automate the process of cluster creation and application deployment using Terraform + Ansible/Jenkins/Helm/script/SDK.
 I have covered the GKE cluster creation using terraform in task 1 of level 1. </br>
