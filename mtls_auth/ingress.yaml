@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: on
+    nginx.ingress.kubernetes.io/auth-tls-secret: default/my-certs
+  name: mstakx-ingress
+  namespace: default
+spec:
+  rules:
+  - host: mstakx.com
+    http:
+      paths:
+      - backend:
+          serviceName: mstakx-svc
+          servicePort: 80
+        path: /
+  tls:
+  - hosts:
+    - mstakx.com
+    secretName: my-certs

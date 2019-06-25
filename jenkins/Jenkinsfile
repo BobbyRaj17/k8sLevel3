@@ -1,0 +1,64 @@
+pipeline {
+  agent {
+    kubernetes {
+      //cloud 'kubernetes'
+      label 'mypod'
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: docker
+    image: docker:1.11
+    command: ['cat']
+    tty: true
+    volumeMounts:
+    - name: dockersock
+      mountPath: /var/run/docker.sock
+  - name: anchore
+    image: anchore/engine-cli:latest
+    command:
+    - cat
+    tty: true
+    env:
+    - name: ANCHORE_CLI_URL
+      value: http://35.224.242.72:8228/
+    - name: ANCHORE_CLI_USER
+      value: admin
+    - name: ANCHORE_CLI_PASS
+      value: bobbyraj007
+  volumes:
+  - name: dockersock
+    hostPath:
+      path: /var/run/docker.sock
+"""
+    }
+  }
+  stages {
+    stage('Build Docker image') {
+      steps {
+        git 'https://github.com/jenkinsci/docker-jnlp-slave.git'
+        container('docker') {
+          script {
+            def customImage = docker.build('bobtestproject/jenkins-image')
+            docker.withRegistry('https://asia.gcr.io', 'gcr:bobtestproject') {
+                customImage.push("${env.BUILD_ID}")
+                customImage.push("latest")
+              }
+          }
+        }
+      }
+    }
+    stage('Anchore scan') {
+      steps {
+        sh 'set'
+        container('anchore') {
+          sh "anchore-cli image add asia.gcr.io/bobtestproject/jenkins-image:${env.BUILD_ID}"
+          sh "anchore-cli image wait asia.gcr.io/bobtestproject/jenkins-image:${env.BUILD_ID} --interval 10"
+          sh "anchore-cli image vuln asia.gcr.io/bobtestproject/jenkins-image:${env.BUILD_ID}"
+          sh "anchore-cli evaluate check asia.gcr.io/bobtestproject/jenkins-image:${env.BUILD_ID}"
+        }
+      }
+    }
+  }
+}

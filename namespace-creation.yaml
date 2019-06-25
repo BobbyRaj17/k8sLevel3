@@ -1,0 +1,7 @@
+---
+# Creating namespace with name staging
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mediawiki
+
