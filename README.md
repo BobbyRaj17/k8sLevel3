@@ -1,16 +1,17 @@
 # k8sLevel3
 Kubernetes level 3
 
-### 1. Create a highly available kubernetes cluster manually using GKE
+#### 1. Create a Kubernetes cluster on GCP (GCP gives free credits on signup so those should suffice for this exercise) on their virtual machines (do not use GKE) or use the cluster created in the level2 test. If possible share a script / code which can be used to create the cluster.
 Covered this in task 1 of level 2.
 
 
-### 2. Setup CI server inside kubernetes cluster 
+### 2. Setup CI Server (Jenkins or tool of your choice) inside the Kubernetes cluster and maintain the high availability of the jobs created.
 
+Using the `jenkins/jenkins-manifest.yaml` file will deploy the Jenkins on kubernetes cluster and credentials will be stored in secrets and could be retrieved using below command.
 ```bash
     kubectl apply -f jenkins/jenkins-manifest.yaml
 ```
-Using the `jenkins/jenkins-manifest.yaml` file will deploy the Jenkins on kubernetes cluster and credentials will be stored in secrets and could be retrieved using below command
+
 ```bash
     printf $(kubectl get secret cd-jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode);echo
 ```
@@ -32,11 +33,11 @@ The above the command will deploy `mediawiki` application with release name `med
 Exposed the `mediawiki` against a loadbalancer -> http://35.239.75.46/
 
 ### 4. Setup private docker registry to store the docker images. configure restricted access between cluster to registry and cluster to pipeline
-I'm setting up docker private registry on `CentOS Linux release 7.6.1810 (Core)` for this task
+I'm setting up docker private registry on `CentOS Linux release 7.6.1810 (Core)`. </br>
 Prerequisites - ensure you have docker and openssl pre installed
 ```bash
     mkdir -p /docker_data/certs/
-    openssl req -newkey rsa:4096 -nodes -sha256 -keyout /docker_data/certs/domain.key -x509 -days 365 -out /docker_data/certs/domain.crt # provide the Common name when prompted
+    openssl req -newkey rsa:4096 -nodes -sha256 -keyout /docker_data/certs/domain.key -x509 -days 365 -out /docker_data/certs/domain.crt # provide the Common name when prompted, rest prompts can be left empty.
     mkdir -p /docker_data/images
     docker run -d -p 5000:5000 \
     -v /docker_data/images:/var/lib/registry \
@@ -53,8 +54,8 @@ Prerequisites - ensure you have docker and openssl pre installed
 ```
 > Note: we might have to add the `localhost:5000` to Insecure Registry for docker engine
 
-we can connect to docker-private registry from the docker-client (it should be accessible from docker-registry server) using the domain.crt that we created above using openssl.
-Make sure docker is pre installed and copy the domain.crt to the docker client and then create a tag or build the image using the `Common name` mentioned above.
+we can connect to docker-private registry from the docker-client (it should be accessible from docker-registry server) using the domain.crt that we created above using openssl. <br/>
+Make sure docker is pre installed on docker-client and domain.crt created above is copied to docker-client as well and then create a tag or build the image using the `Common name` provided above.
 `Docker clients would use this TLS certificate to avoid certificate issues`
  ```bash
     mkdir -p /etc/docker/certs.d/<Common name>:5000/
@@ -65,7 +66,7 @@ Make sure docker is pre installed and copy the domain.crt to the docker client a
 
 ### 5. Deploy an open source vulnerability scanner for docker images scanning within the CI build pipeline.
 
-Anchore Engine is a tool for analyzing container images. In addition to CVE-based security vulnerability reporting, Anchore Engine can evaluate Docker images using custom policies.
+Anchore Engine is a tool for analyzing container images. In addition to CVE-based security vulnerability reporting, Anchore Engine can evaluate Docker images using custom policies. </br>
 leveraging the helm chart available for `Anchore` for installing the `Anchore engine`
 ```bash
     helm install --name <release_name> -f anchore_values.yaml stable/anchore-engine
@@ -75,15 +76,13 @@ Exposed the Anchore against a loadbalancer -> `http://35.224.242.72:8228/`
 once the anchore engine is installed on kubernetes we can either use the Anchore load balancer or svc endpoint for scanning docker images for vulnerability.
 
 Using the declarative pipeline, configured the jenkins CI for docker build & anchore scanning.
-> Note : I am using the jenkins kubernetes plugin for running jenkins slave on kubernetes pod, Declarative pipeline code is checked-in under `Jenkinsfile` available in the jenkins directory of this repo.
+> Note : I am using the jenkins kubernetes plugin so that kubernetes pod can behave as jenkins slave, Declarative pipeline code is checked-in under `Jenkinsfile` available in the jenkins directory of this repo.
 
 ### 6. Setup Nginx Ingress Controller manually. Configure proper routes between ingress and the application.
 Covered this in task 2 of level 1.
 
 
 ### 7. Setup Istio and configure Kiali & Zipkin.
-I have setup/configured this task in GKE
-
 I'm using the official [istio release](https://github.com/istio/istio/releases) to download the latest istio package i.e. Istio 1.2.0
 Extract the downloaded installation file.
 Ensure that you're in the Istio installation's root directory.
@@ -137,9 +136,9 @@ To resolve this we can us any of the below methods
 
 
 ### 10. Automate the process of cluster creation and application deployment using Terraform + Ansible/Jenkins/Helm/script/SDK.
-I have covered the GKE cluster creation in task1 of level 1.
-For application deployment say guestbook could be easily done using the kubernetes module available in terraform
-Before we start, we need to initialize some variables that the GCP provider requires & administrative account and a random password for the cluster
+I have covered the GKE cluster creation using terraform in task 1 of level 1. </br>
+For application deployment say guestbook could be easily done using the kubernetes module available in terraform. </br>
+Before we start, we need to initialize some variables that the GCP provider requires & administrative account and a random password for the cluster. </br>
 we would require four files for kubernetes also checked in under terraform-gke directory i.e. 
 ```text
     ├── k8s
@@ -155,4 +154,4 @@ Install the cluster & Launch the Application
     terraform apply
     kubectl get service --watch #after couple of minutes you will be able to see the endpoints
 ```
-> Note: the latest version of terraform i.e. [0.12](https://www.hashicorp.com/blog/announcing-terraform-0-12) might not support the labels and selector block as done by 0.11 so we might need to do some changes to make it work on the latest release
+> Note: the latest version of terraform i.e. [0.12](https://www.hashicorp.com/blog/announcing-terraform-0-12) might not support the labels and selector block for kubernetes as supported by 0.11 so we might need to do some changes to make it work on the latest release
