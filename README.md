@@ -7,10 +7,11 @@ Covered this in task 1 of level 2.
 
 ### 2. Setup CI Server (Jenkins or tool of your choice) inside the Kubernetes cluster and maintain the high availability of the jobs created.
 
-Using the `jenkins/jenkins-manifest.yaml` file will deploy the Jenkins on kubernetes cluster and credentials will be stored in secrets and could be retrieved using below command.
+Using the `jenkins/jenkins-manifest.yaml` file we are going to deploy the Jenkins on kubernetes cluster. 
 ```bash
     kubectl apply -f jenkins/jenkins-manifest.yaml
 ```
+credentials will be stored in secrets and could be retrieved using below command.
 
 ```bash
     printf $(kubectl get secret cd-jenkins -o jsonpath="{.data.jenkins-admin-password}" | base64 --decode);echo
@@ -20,7 +21,7 @@ Exposed the Jenkins against a loadbalancer -> `http://104.198.24.162:8080`
 > Note: In `jenkins/jenkins-manifest.yaml` file we are installing kubernetes jenkins plugin by default so that we can run all our jobs within the the kubernetes pod which will be acting as a default slave. 
 
 ### 3. Create a namespace & deploy the mediawiki application on cluster
-we can leverage Helm to deploy the mediawiki application as the Helm chart for this is readily available
+I'm leveraging Helm chart to deploy the mediawiki application as the Helm chart for this is easily available.
 
 ```bash
     kubectl create -f namespace-creation.yaml
@@ -67,7 +68,7 @@ Make sure docker is pre installed on docker-client and domain.crt created above 
 ### 5. Deploy an open source vulnerability scanner for docker images scanning within the CI build pipeline.
 
 Anchore Engine is a tool for analyzing container images. In addition to CVE-based security vulnerability reporting, Anchore Engine can evaluate Docker images using custom policies. </br>
-leveraging the helm chart available for `Anchore` for installing the `Anchore engine`
+I'm leveraging the helm chart available for `Anchore` for installing the `Anchore engine`
 ```bash
     helm install --name <release_name> -f anchore_values.yaml stable/anchore-engine
 ```
@@ -92,8 +93,9 @@ Install Istio's core components:
     kubectl apply -f install/kubernetes/istio-demo-auth.yaml
 ```
 
-> By default this come with zipkin and kiali, we can use port forward to access them.
-for e.g. kiali refer the below screenshot
+> By default zipkin and kiali comes with istio package, we can use port forward to access them.
+
+for kiali refer the below screenshot
 ![Kiali](images/kiali.png) 
 
 
@@ -101,11 +103,11 @@ for e.g. kiali refer the below screenshot
 Prerequisites - Please make sure nginx ingress controller is installed in the cluster(Covered this in task 2 of level 1.)
 In order to setup Mutual Authentication we need to perform a couple of steps.
 
-creating the self-signed certificate
+Creating the self-signed certificate
 ```bash
     sh ./mtls_auth/cert-2048.sh
 ```
-storing the certificates generated above in a Kubernetes Secret
+Storing the certificates generated above in a Kubernetes Secret
 ```bash
     kubectl create secret generic my-certs --from-file=tls.crt=server.crt --from-file=tls.key=server.key --from-file=ca.crt=ca.crt
 ```
@@ -116,7 +118,7 @@ Deploying application that just responds with information about the request
     kubectl apply -f ./mtls_auth/service.yaml
 ```
 
-for testing Sending a request with the Client Certificate and Key, should redirect you to the `mstakx-svc` if the certificates are not provided while calling the request then it will return `400 bad request`
+To test this we can send a request with the Client Certificate and Key & it should redirect you to the `mstakx-svc`, if the certificates are not provided while calling the request then it will return `400 bad request`. </br>
 for e.g. `curl <url> --cert client.crt --key client.key -k ` use the same url as per configured in ingress
 
 ### 9. Setup Kubernetes Dashboard and secure access to the dashboard using a read only token.
@@ -133,7 +135,6 @@ To resolve this we can us any of the below methods
 * we can create separate service account instead of using the kubernetes dashboard's service account.
  
 > Note: we can limit the role for  service account to pods & namespace or read access 0nly if required
-
 
 ### 10. Automate the process of cluster creation and application deployment using Terraform + Ansible/Jenkins/Helm/script/SDK.
 I have covered the GKE cluster creation using terraform in task 1 of level 1. </br>
